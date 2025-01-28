@@ -7,11 +7,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getImageById } from "@/lib/data";
 import { v4 as uuid } from "uuid";
+import { SUPABAE_ANON_KEY, SUPABAE_URL } from "@/const";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
+const supabase = createClient(SUPABAE_URL, SUPABAE_ANON_KEY);
 export const uploadImage = async (prevstate: unknown, formData: FormData) => {
   // console.log(formData);
   const validatedField = UploadSchema.safeParse(
