@@ -1,23 +1,23 @@
-import {prisma} from "@/lib/prisma"
+import { prisma } from "@/lib/prisma";
 
-export const getImages = async () =>{
+export const getImages = async () => {
   try {
     const result = await prisma.gallery.findMany({
-      orderBy: {createdAt:"desc"}
-    })
+      orderBy: { createdAt: "desc" },
+    });
     return result;
   } catch (error) {
-    throw new Error("Failed to fetch data")
+    throw new Error("Failed to fetch data" + error);
   }
-}
+};
 
-export const getImageById = async (id:string) =>{
+export const getImageById = async (id: string) => {
   try {
     const result = await prisma.gallery.findUnique({
-      where: {id}
-    })
+      where: { id },
+    });
     return result;
   } catch (error) {
-    throw new Error("Failed to fetch data")
+    throw new Error("Failed to fetch data");
   }
-}
+};

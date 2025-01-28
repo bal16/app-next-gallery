@@ -1,12 +1,17 @@
 "use server";
 
 import { EditSchema, UploadSchema } from "./formSchema";
-import { del, put } from "@vercel/blob";
+import { createClient } from "@supabase/supabase-js";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getImageById } from "@/lib/data";
+import { v4 as uuid } from "uuid";
 
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
 export const uploadImage = async (prevstate: unknown, formData: FormData) => {
   // console.log(formData);
   const validatedField = UploadSchema.safeParse(
@@ -18,16 +23,21 @@ export const uploadImage = async (prevstate: unknown, formData: FormData) => {
     };
   }
   const { title, image } = validatedField.data;
-  const { url } = await put(image.name, image, {
-    access: "public",
-    multipart: true,
-  });
+  const { data, error } = await supabase.storage
+    .from("gallery")
+    .upload(uuid(), image);
 
+  if (error) {
+    console.log("🚀 ~ uploadImage ~ error:", error.message);
+    return {
+      message: error.message,
+    };
+  }
   try {
     await prisma.gallery.create({
       data: {
         title,
-        image: url,
+        image: data.path,
       },
     });
   } catch (error) {
@@ -64,12 +74,18 @@ export const updateImage = async (
   if (!image || image.size <= 0) {
     imagePath = data.image;
   } else {
-    await del(data.image);
-    const { url } = await put(image.name, image, {
-      access: "public",
-      multipart: true,
-    });
-    imagePath = url;
+    await supabase.storage.from("gallery").remove([data.image]);
+    const { data: supaImage, error } = await supabase.storage
+      .from("gallery")
+      .upload(image.name, image);
+
+    if (error) {
+      return {
+        message: error.message,
+      };
+    }
+
+    imagePath = supaImage!.path;
   }
 
   try {
@@ -96,7 +112,8 @@ export const deleteImage = async (id: string) => {
       message: "Data not found",
     };
   }
-  await del(data.image);
+
+  await supabase.storage.from("gallery").remove([data.image]);
   try {
     await prisma.gallery.delete({
       where: { id },
@@ -105,5 +122,4 @@ export const deleteImage = async (id: string) => {
     return { message: "Failed to delete data" };
   }
   revalidatePath("/");
-  // redirect("/");
 };

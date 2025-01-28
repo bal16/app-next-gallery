@@ -1,13 +1,14 @@
 import Image from "next/image";
 import { DeleteButton, EditButton } from "@/components/button";
 import { Gallery } from "@prisma/client";
+import { IMAGE_URL } from "@/const";
 
-const Card = ({data}:{data:Gallery}) => {
+const Card = ({ data }: { data: Gallery }) => {
   return (
     <div className="max-w-sm border border-gray-200 rounded-md shadow ">
       <div className="relative aspect-video">
         <Image
-          src={data.image}
+          src={IMAGE_URL + data.image}
           alt={data.title}
           fill
           priority
@@ -16,7 +17,9 @@ const Card = ({data}:{data:Gallery}) => {
         />
       </div>
       <div className="p-5">
-        <h1 className="text-2xl font-bold text-gray-900 truncate">{data.title}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 truncate">
+          {data.title}
+        </h1>
       </div>
       <div className="flex items-center justify-between">
         <EditButton id={data.id} />
